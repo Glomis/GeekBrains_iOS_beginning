@@ -31,3 +31,22 @@ func sortArray(from array: [Int]) -> [Int] {
 }
 
 let sortedArray = sortArray(from: array)
+
+// 5. Написать функцию, которая добавляет в массив новое число Фибоначчи, и добавить при помощи нее 100 элементов
+func fibonacchi(n: Int) -> [Int] {
+    var x = -1 ,y = 1, sum = 0
+    
+    var array = [Int]()
+    
+    for _ in 0..<n {
+        sum = x+y
+        x   = y
+        y   = sum
+        array.append(sum)
+    }
+    return array
+}
+
+let fib = fibonacchi(n: 90)
+
+
