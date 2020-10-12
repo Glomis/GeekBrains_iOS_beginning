@@ -7,6 +7,7 @@ protocol CarProtocol {
 
 // Classes
 class SportCar: CarProtocol {
+    
     let brand: String
     let productionYear: Int
     var hatch: Bool
@@ -19,10 +20,11 @@ class SportCar: CarProtocol {
 }
 
 class TruncCar: CarProtocol {
+    
     let brand: String
     let productionYear: Int
     var mp3: Bool
-
+    
     init(brand: String, productionYear: Int, mp3: Bool) {
         self.brand = brand
         self.productionYear = productionYear
@@ -31,8 +33,7 @@ class TruncCar: CarProtocol {
 }
 
 // Enum with cars
-enum Cars: CarProtocol {
-    
+enum Cars: CarProtocol, CustomStringConvertible {
     case sportCar(SportCar)
     case truncCar(TruncCar)
     
@@ -56,19 +57,61 @@ enum Cars: CarProtocol {
             }
         }
     }
+    
+    var mp3: Bool {
+        switch self {
+        case .truncCar(let trunc):
+            return trunc.mp3
+        default:
+            return false
+        }
+    }
+    
+    var description: String {
+        "\(self.brand) \(self.productionYear)"
+    }
 }
 
 // Queue
 struct CarQueue<T: CarProtocol> {
     var queue = [T]()
     
-    mutating func push(_ car: T) {
-        queue.append(car)
+    mutating func push(_ car: T...) {
+        queue.append(contentsOf: car)
     }
     
     mutating func pop() -> T? {
-        guard queue.count > 0 else { return nil }
+        guard !queue.isEmpty else { return nil }
         return queue.removeFirst()
+    }
+    
+    
+    mutating func filter(predicate: (T) -> Bool) -> [T] {
+        var filteredCars = [T]()
+        
+        for car in queue {
+            if predicate(car) {
+                filteredCars.append(car)
+            }
+        }
+        
+        return filteredCars
+    }
+}
+
+// Subscript
+extension CarQueue {
+    subscript (elements: Int ...) -> Int? {
+        var year = 0
+        
+        for index in elements {
+            guard index <= elements.count && index >= 0 else {
+                print("Данного индекса нет в массиве"); return nil }
+            
+            year = self.queue[index].productionYear
+            print("Год выпуска машины по данному индексу - \(year)")
+        }
+        return year
     }
 }
 
@@ -78,14 +121,21 @@ let uaz = TruncCar(brand: "UAZ", productionYear: 2015, mp3: false)
 let mazda = SportCar(brand: "Mazda", productionYear: 2010, hatch: false)
 let maz = TruncCar(brand: "Maz", productionYear: 2018, mp3: true)
 
+// filters
+let newCarFilter: (Cars) -> Bool = { cars in
+    return cars.productionYear > 2015
+}
 
-var queue = CarQueue<Cars>()
+let withMp3: (Cars) -> Bool = { cars in
+    return cars.mp3 == false
+}
 
-queue.push(.sportCar(audi))
-queue.push(.truncCar(uaz))
-queue.push(.sportCar(mazda))
-queue.push(.truncCar(maz))
+var carQueue = CarQueue<Cars>()
 
-queue.pop()
-queue.pop()
-queue.pop()
+carQueue.push(.sportCar(audi), .truncCar(uaz), .sportCar(mazda), .truncCar(maz))
+
+let newCars = carQueue.filter(predicate: newCarFilter)
+
+print(newCars)
+
+carQueue[0, 2, 4]
